@@ -57,7 +57,7 @@ export const authApi = apiService.injectEndpoints({
       }),
     }),
     logout: builder.mutation({
-      query: () => ({ url: "auth/logout", method: "GET" }),
+      query: () => ({ url: "auth/logout", method: "POST" }),
     }),
   }),
 });

@@ -80,6 +80,7 @@ import ManageResource from "./pages/dashboard/admin/ManageResource";
 import PressPage from "./pages/PressPage";
 import PressArticleDetailsPage from "./pages/PressArticleDetailsPage";
 import ManagePressArticles from "./pages/dashboard/admin/ManagePressArticles";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -148,6 +149,7 @@ const AppContent = () => {
         <Route path="/browse-jobs" element={<BrowseJobsPage />} />
         <Route path="/job/:id" element={<JobDetailPage />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route
           path="/career/:careerPath/salaries"
           element={<SalaryDetailsPage />}

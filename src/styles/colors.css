@@ -1,0 +1,11 @@
+/* Master Color Palette */
+:root {
+  --color-primary: #ff6b2c;
+  --color-text-primary: #2d3239;
+  --color-text-secondary: #6b7280;
+  --color-bg-main: #ffffff;
+  --color-bg-subtle: #f9fafc;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+}

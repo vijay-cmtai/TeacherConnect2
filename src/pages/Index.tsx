@@ -19,10 +19,10 @@ import {
   Bookmark,
   Share2,
   Wallet,
-  Zap,
   Building,
   ShieldCheck,
   Loader2,
+  ArrowLeft,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -156,7 +156,7 @@ const testimonials: Testimonial[] = [
       "As a school administrator, I've found exceptional teachers through this portal. The quality of candidates and the easy-to-use interface makes hiring so much more efficient.",
     rating: 5,
     avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%D%3D&auto=format&fit=crop&w=1170&q=80",
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
   },
   {
     id: 3,
@@ -171,7 +171,6 @@ const testimonials: Testimonial[] = [
   },
 ];
 
-// ✅ HERO CAROUSEL UPDATED FOR BACKGROUND VIDEOS
 const HeroCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   useEffect(() => {
@@ -255,7 +254,6 @@ const HeroCarousel = () => {
   );
 };
 
-// ... (The rest of your components like NewJobDetails, JobListItem, Index, etc. remain the same) ...
 const NewJobDetails = ({
   job,
   applicationStatus,
@@ -271,13 +269,17 @@ const NewJobDetails = ({
 
   const handleAction = async (action: "apply" | "save") => {
     if (!isAuthenticated) {
+      toast.error("Please log in to apply for jobs.");
       navigate("/login");
       return;
     }
-    if (currentUser?.role !== "employer") {
+    // ✅ FIX: This is the correct logic. It checks if the user's role is NOT 'teacher'
+    // and stops the function if that is the case. This prevents non-teachers from applying.
+    if (currentUser?.role !== "teacher") {
       toast.error(`Only teachers can ${action} for jobs.`);
       return;
     }
+
     const mutation = action === "apply" ? applyToJob : saveJob;
     const successMessage =
       action === "apply" ? "Successfully applied!" : "Job saved!";
@@ -422,7 +424,9 @@ const JobListItem = (props: {
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg transform hover:-translate-y-1 ${isSelected ? "border-primary bg-subtle shadow-md" : "border-subtle"}`}
+      className={`bg-white rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg transform hover:-translate-y-1 ${
+        isSelected ? "border-primary bg-subtle shadow-md" : "border-subtle"
+      }`}
     >
       <div className="p-5 relative">
         <div className="flex justify-between items-start">
@@ -479,13 +483,20 @@ const JobSearchSection = () => {
 
   const applicationStatusMap = useMemo(() => {
     const map = new Map<"applied" | "saved", Set<string>>();
-    map.set("applied", new Set(myApplications.map((app) => app.job._id)));
-    map.set("saved", new Set(savedApplications.map((app) => app.job._id)));
+    const appliedJobIds = myApplications
+      .map((app) => app?.job?._id)
+      .filter(Boolean);
+    map.set("applied", new Set(appliedJobIds));
+    const savedJobIds = savedApplications
+      .map((app) => app?.job?._id)
+      .filter(Boolean);
+    map.set("saved", new Set(savedJobIds));
     return map;
   }, [myApplications, savedApplications]);
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [mobileView, setMobileView] = useState<"list" | "details">("list");
 
   useEffect(() => {
     if (jobs.length > 0 && !selectedJob) {
@@ -501,6 +512,15 @@ const JobSearchSection = () => {
         job.schoolName.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [jobs, searchTerm]);
+
+  const handleJobSelect = (job: Job) => {
+    setSelectedJob(job);
+    setMobileView("details");
+  };
+
+  const handleBackToList = () => {
+    setMobileView("list");
+  };
 
   if (isLoading)
     return (
@@ -543,14 +563,19 @@ const JobSearchSection = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-8">
-          <div className="lg:col-span-5 xl:col-span-4 space-y-4 lg:h-[calc(100vh-200px)] lg:overflow-y-auto pr-4 custom-scrollbar">
+          {/* Job List Pane */}
+          <div
+            className={`lg:col-span-5 xl:col-span-4 space-y-4 h-[60vh] overflow-y-auto lg:h-[calc(100vh-200px)] pr-4 custom-scrollbar ${
+              mobileView === "list" ? "block" : "hidden"
+            } lg:block`}
+          >
             {filteredJobs.length > 0 ? (
               filteredJobs.map((job) => (
                 <JobListItem
                   key={job._id}
                   job={job}
                   isSelected={selectedJob?._id === job._id}
-                  onClick={() => setSelectedJob(job)}
+                  onClick={() => handleJobSelect(job)}
                   applicationStatus={getJobApplicationStatus(job._id)}
                 />
               ))
@@ -560,7 +585,23 @@ const JobSearchSection = () => {
               </p>
             )}
           </div>
-          <div className="hidden lg:block lg:col-span-7 xl:col-span-8 lg:h-[calc(100vh-200px)] lg:overflow-y-auto pr-2 custom-scrollbar">
+
+          {/* Job Details Pane */}
+          <div
+            className={`lg:col-span-7 xl:col-span-8 h-[60vh] overflow-y-auto lg:h-[calc(100vh-200px)] pr-2 custom-scrollbar ${
+              mobileView === "details" ? "block" : "hidden"
+            } lg:block`}
+          >
+            {/* Back Button for mobile view */}
+            <Button
+              variant="outline"
+              onClick={handleBackToList}
+              className="mb-4 lg:hidden flex items-center sticky top-0 bg-slate-50 z-10"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Job List
+            </Button>
+
             {selectedJob ? (
               <NewJobDetails
                 job={selectedJob}
@@ -831,6 +872,27 @@ const StatsSection = () => (
     </div>
     <div>
       <div className="text-3xl font-bold text-white">4.9/5</div>
+      <div className="text-sm text-white mt-1">User Rating</div>
+    </div>
+  </div>
+);
+
+const Index = () => {
+  return (
+    <div className="min-h-screen bg-main text-main">
+      <Header />
+      <HeroCarousel />
+      <HowWeWork />
+      <ForEmployers />
+      <JobSearchSection />
+      <TestimonialsSection />
+      <StatsSection />
+      <Footer />
+    </div>
+  );
+};
+export default Index;
+nt-bold text-white">4.9/5</div>
       <div className="text-sm text-white mt-1">User Rating</div>
     </div>
   </div>

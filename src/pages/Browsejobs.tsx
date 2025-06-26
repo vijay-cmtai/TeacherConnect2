@@ -19,14 +19,15 @@ import {
   Building,
   Loader2,
   AlertTriangle,
-  Search, // Import the Search icon
+  Search,
+  ArrowLeft, // ✅ Import ArrowLeft icon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import toast from "react-hot-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { AnimatePresence, motion } from "framer-motion"; // Import for animations
+import { AnimatePresence, motion } from "framer-motion";
 
 // Define the Job interface
 interface Job {
@@ -210,7 +211,9 @@ const JobListItem = ({
 }) => (
   <div
     onClick={onClick}
-    className={`bg-white rounded-lg border cursor-pointer transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 ${isSelected ? "border-primary ring-2 ring-primary/30" : "border-gray-200"}`}
+    className={`bg-white rounded-lg border cursor-pointer transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 ${
+      isSelected ? "border-primary ring-2 ring-primary/30" : "border-gray-200"
+    }`}
   >
     <div className="p-5 relative">
       <div className="flex justify-between items-start gap-3">
@@ -255,6 +258,8 @@ const BrowseJobsPage = () => {
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  // ✅ State to manage mobile view
+  const [mobileView, setMobileView] = useState<"list" | "details">("list");
 
   const applicationStatusMap = useMemo(() => {
     const map = new Map();
@@ -275,9 +280,7 @@ const BrowseJobsPage = () => {
   }, [jobs, searchQuery]);
 
   useEffect(() => {
-    // Automatically select the first job from the filtered list
     if (filteredJobs.length > 0) {
-      // If the currently selected job is not in the new filtered list, update it
       if (
         !selectedJob ||
         !filteredJobs.find((j) => j._id === selectedJob._id)
@@ -285,12 +288,22 @@ const BrowseJobsPage = () => {
         setSelectedJob(filteredJobs[0]);
       }
     } else {
-      setSelectedJob(null); // Clear selection if no results
+      setSelectedJob(null);
     }
   }, [filteredJobs]);
 
   const getJobApplicationStatus = (jobId: string) =>
     applicationStatusMap.get(jobId) || null;
+
+  // ✅ Handlers to switch views on mobile
+  const handleJobSelect = (job: Job) => {
+    setSelectedJob(job);
+    setMobileView("details");
+  };
+
+  const handleBackToList = () => {
+    setMobileView("list");
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -305,8 +318,6 @@ const BrowseJobsPage = () => {
               <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
                 Explore thousands of teaching jobs from top institutions.
               </p>
-
-              {/* --- [NEW] SEARCH BAR --- */}
               <form
                 onSubmit={(e) => e.preventDefault()}
                 className="mt-8 max-w-2xl mx-auto"
@@ -325,7 +336,12 @@ const BrowseJobsPage = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-8">
-              <div className="lg:col-span-5 xl:col-span-4 space-y-4">
+              {/* ✅ JOB LIST PANE: Updated for mobile view & scroll */}
+              <div
+                className={`lg:col-span-5 xl:col-span-4 space-y-4 h-[70vh] lg:h-auto overflow-y-auto custom-scrollbar ${
+                  mobileView === "list" ? "block" : "hidden"
+                } lg:block`}
+              >
                 {isLoading ? (
                   <div className="flex flex-col items-center justify-center py-24 text-lg font-semibold text-gray-600 gap-3">
                     <Loader2 className="animate-spin w-8 h-8 text-primary" />
@@ -342,7 +358,7 @@ const BrowseJobsPage = () => {
                       key={job._id}
                       job={job}
                       isSelected={selectedJob?._id === job._id}
-                      onClick={() => setSelectedJob(job)}
+                      onClick={() => handleJobSelect(job)} // Use handler
                       applicationStatus={getJobApplicationStatus(job._id)}
                     />
                   ))
@@ -353,7 +369,22 @@ const BrowseJobsPage = () => {
                 )}
               </div>
 
-              <div className="hidden lg:block lg:col-span-7 xl:col-span-8 sticky top-24 h-fit">
+              {/* ✅ JOB DETAILS PANE: Updated for mobile view & scroll */}
+              <div
+                className={`lg:col-span-7 xl:col-span-8 lg:sticky lg:top-24 lg:h-fit h-[80vh] overflow-y-auto custom-scrollbar ${
+                  mobileView === "details" ? "block" : "hidden"
+                } lg:block`}
+              >
+                {/* Back button for mobile */}
+                <Button
+                  variant="outline"
+                  onClick={handleBackToList}
+                  className="mb-4 lg:hidden flex items-center w-full sticky top-0 bg-gray-50 z-10"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Job List
+                </Button>
+
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={selectedJob?._id || "no-job-selected"}

@@ -1,4 +1,3 @@
-
 {
   "common": {
     "search": "Search",
@@ -25,7 +24,8 @@
       "companyReviews": "Company reviews",
       "salaryGuide": "Salary guide",
       "careerGuide": "Career guide",
-      "browseJobs":"Browse Jobs"
+      "browseJobs": "Browse Jobs",
+      "employee": "For Employee"
     },
     "profile": {
       "profile": "Profile",

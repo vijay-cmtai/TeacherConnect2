@@ -275,7 +275,7 @@ const NewJobDetails = ({
     }
     // ✅ FIX: This is the correct logic. It checks if the user's role is NOT 'teacher'
     // and stops the function if that is the case. This prevents non-teachers from applying.
-    if (currentUser?.role !== "teacher") {
+    if (currentUser && currentUser.role && currentUser.role !== "teacher") {
       toast.error(`Only teachers can ${action} for jobs.`);
       return;
     }
@@ -872,27 +872,6 @@ const StatsSection = () => (
     </div>
     <div>
       <div className="text-3xl font-bold text-white">4.9/5</div>
-      <div className="text-sm text-white mt-1">User Rating</div>
-    </div>
-  </div>
-);
-
-const Index = () => {
-  return (
-    <div className="min-h-screen bg-main text-main">
-      <Header />
-      <HeroCarousel />
-      <HowWeWork />
-      <ForEmployers />
-      <JobSearchSection />
-      <TestimonialsSection />
-      <StatsSection />
-      <Footer />
-    </div>
-  );
-};
-export default Index;
-nt-bold text-white">4.9/5</div>
       <div className="text-sm text-white mt-1">User Rating</div>
     </div>
   </div>
